@@ -7,11 +7,12 @@ COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
 
-RUN chmod -R 777 ./mvnw
+RUN chmod +x ./mvnw
 
-RUN ./mvnw install -DskipTests
+RUN ./mvnw clean package -DskipTests
 
-RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../.jar)
+# Corrigindo a extração do JAR - usando o padrão de nome do Maven
+RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 FROM openjdk:17.0.1-jdk-oracle
 
@@ -23,4 +24,4 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 
-ENTRYPOINT ["java","-cp","app:app/lib/","com.generation.CRM.ProjetoCrmApplication"]
+ENTRYPOINT ["java","-cp","app:app/lib/*","com.generation.CRM.ProjetoCrmApplication"]
